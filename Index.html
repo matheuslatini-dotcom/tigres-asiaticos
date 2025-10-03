@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cadeados Sequenciais</title>
+  <style>
+    :root{ --bg:#0f1724; --card:#0b1220; --accent:#60a5fa; --success:#34d399; color-scheme: dark; }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#071022 0%, #091229 100%);color:#e6eef8}
+    .wrap{width:100%;max-width:920px;margin:32px;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+    h1{margin:0 0 12px;font-size:20px}
+    p.lead{margin:0 0 20px;color:#bcd7ff}
+
+    .locks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .lock{background:var(--card);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:10px;align-items:center}
+    .pad{font-size:36px}
+    .status{font-weight:600;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03)}
+    .controls{width:100%;display:flex;gap:8px}
+    input[type=text]{flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    button{padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#062135;font-weight:600;cursor:pointer}
+    button:disabled{opacity:0.45;cursor:not-allowed}
+    .unlocked{background:linear-gradient(90deg,#042a14,#073a26);border:1px solid rgba(0,0,0,0.25)}
+    .hint{font-size:13px;color:#9fb7ff}
+    .success{margin-top:14px;padding:12px;border-radius:8px;background:linear-gradient(90deg, rgba(52,211,153,0.08), rgba(96,165,250,0.06));color:var(--success);display:flex;gap:10px;align-items:center}
+    footer{margin-top:12px;font-size:13px;color:#90a9d9}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cadeados sequenciais</h1>
+    <p class="lead">Digite a senha correta para destravar cada cadeado. Eles são sequenciais: só é possível tentar o próximo depois de abrir o anterior.</p>
+
+    <div class="locks" id="locks"></div>
+
+    <div id="final" style="display:none" class="success">
+      <div style="font-size:20px">🔓</div>
+      <div>
+        <div style="font-weight:700">Todos os cadeados abertos!</div>
+        <div style="font-size:13px;color:var(--accent)">Parabéns — acesso completo concedido.</div>
+      </div>
+    </div>
+
+    <footer>Arquivo: <strong>index.html</strong> — copie e abra no navegador.</footer>
+  </div>
+
+  <script>
+    // Senhas definidas pelo usuário (ordem importa)
+    const passwords = [
+      '1953',
+      'HongKong',
+      'HTCS',
+      'Taipei',
+      'Tigres Asiáticos'
+    ];
+
+    // Função para normalizar entrada: remove acentos e compara minúsculas
+    function normalizeText(s){
+      if(!s) return '';
+      // remover acentos
+      const withoutDiacritics = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+      return withoutDiacritics.toLowerCase().trim();
+    }
+
+    const container = document.getElementById('locks');
+
+    // Estado dos cadeados
+    const state = passwords.map((p, i) => ({ index:i, locked:true }));
+
+    // Pré-calcula versões normalizadas das senhas para comparação tolerante (case + diacríticos)
+    const normalizedPasswords = passwords.map(p => normalizeText(p));
+
+    // Cria os blocos de UI
+    passwords.forEach((pw, i) => {
+      const card = document.createElement('div');
+      card.className = 'lock';
+      card.id = 'lock-'+i;
+
+      const pad = document.createElement('div');
+      pad.className = 'pad';
+      pad.textContent = '🔒';
+
+      const status = document.createElement('div');
+      status.className = 'status';
+      status.textContent = 'Trancado';
+
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = `Cadeado ${i+1}`;
+
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Digite a senha';
+      input.autocomplete = 'off';
+      input.id = 'input-'+i;
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Abrir';
+      btn.id = 'btn-'+i;
+
+      controls.appendChild(input);
+      controls.appendChild(btn);
+
+      card.appendChild(pad);
+      card.appendChild(status);
+      card.appendChild(hint);
+      card.appendChild(controls);
+
+      container.appendChild(card);
+
+      // Desativa todos menos o primeiro
+      if(i !== 0){
+        input.disabled = true;
+        btn.disabled = true;
+        card.style.opacity = 0.78;
+      }
+
+      // tratar ENTER
+      input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') btn.click();
+      });
+
+      btn.addEventListener('click', () => {
+        const val = input.value || '';
+        // compara versão normalizada
+        if(normalizeText(val) === normalizedPasswords[i]){
+          // sucesso
+          state[i].locked = false;
+          pad.textContent = '🔓';
+          status.textContent = 'Destrancado';
+          card.classList.add('unlocked');
+          input.disabled = true;
+          btn.disabled = true;
+
+          // habilitar próximo cadeado (se existir)
+          const nextIndex = i+1;
+          if(nextIndex < passwords.length){
+            const nextInput = document.getElementById('input-'+nextIndex);
+            const nextBtn = document.getElementById('btn-'+nextIndex);
+            const nextCard = document.getElementById('lock-'+nextIndex);
+            nextInput.disabled = false;
+            nextBtn.disabled = false;
+            nextInput.focus();
+            nextCard.style.opacity = 1;
+          } else {
+            // todos abertos
+            document.getElementById('final').style.display = 'flex';
+          }
+        } else {
+          // fracasso
+          // efeito sutil
+          btn.animate([
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-8px)' },
+            { transform: 'translateX(8px)' },
+            { transform: 'translateX(0)' }
+          ], { duration: 260 });
+          // dica rápida
+          status.textContent = 'Senha incorreta';
+          setTimeout(()=>{
+            if(state[i].locked) status.textContent = 'Trancado';
+          },1200);
+        }
+      });
+    });
+
+    // acessibilidade: foco no primeiro input ao carregar
+    document.getElementById('input-0').focus();
+
+  </script>
+</body>
+</html>
