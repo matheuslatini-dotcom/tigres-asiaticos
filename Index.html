@@ -1,92 +1,75 @@
 <!doctype html>
+
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cadeados Sequenciais</title>
   <style>
-    :root{ --bg:#0f1724; --card:#0b1220; --accent:#60a5fa; --success:#34d399; color-scheme: dark; }
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#071022 0%, #091229 100%);color:#e6eef8}
-    .wrap{width:100%;max-width:920px;margin:32px;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
-    h1{margin:0 0 12px;font-size:20px}
-    p.lead{margin:0 0 20px;color:#bcd7ff}
-
-    .locks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-    .lock{background:var(--card);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:10px;align-items:center}
-    .pad{font-size:36px}
-    .status{font-weight:600;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03)}
-    .controls{width:100%;display:flex;gap:8px}
-    input[type=text]{flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
-    button{padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#062135;font-weight:600;cursor:pointer}
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f172a,#0f3d5e);color:#e6eef8;margin:0;padding:20px}
+    .container{width:100%;max-width:720px;background:rgba(255,255,255,0.03);padding:28px;border-radius:14px;box-shadow:0 8px 24px rgba(2,6,23,0.6)}
+    h1{margin:0 0 18px;font-size:22px;text-align:center}
+    p.lead{margin:0 0 18px;text-align:center;opacity:0.9}
+    .locks{display:grid;grid-template-columns:repeat(1,1fr);gap:12px}
+    @media(min-width:640px){.locks{grid-template-columns:repeat(2,1fr)}}
+    .lock{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:12px}
+    .icon{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);font-weight:700}
+    .info{flex:1}
+    .info h3{margin:0;font-size:14px}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    input[type="text"]{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.25);color:inherit;flex:1}
+    button{padding:8px 12px;border-radius:8px;border:0;background:rgba(255,255,255,0.06);color:inherit;cursor:pointer}
     button:disabled{opacity:0.45;cursor:not-allowed}
-    .unlocked{background:linear-gradient(90deg,#042a14,#073a26);border:1px solid rgba(0,0,0,0.25)}
-    .hint{font-size:13px;color:#9fb7ff}
-    .success{margin-top:14px;padding:12px;border-radius:8px;background:linear-gradient(90deg, rgba(52,211,153,0.08), rgba(96,165,250,0.06));color:var(--success);display:flex;gap:10px;align-items:center}
-    footer{margin-top:12px;font-size:13px;color:#90a9d9}
+    .status{font-size:13px;margin-top:6px;opacity:0.9}
+    .unlocked{color:#22c55e}
+    .locked{color:#f97316}
+    .final{margin-top:16px;padding:12px;border-radius:10px;background:linear-gradient(90deg,#052d36,#0a2f4a);text-align:center}
+    small.note{display:block;margin-top:8px;opacity:0.8}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Cadeados sequenciais</h1>
-    <p class="lead">Digite a senha correta para destravar cada cadeado. Eles são sequenciais: só é possível tentar o próximo depois de abrir o anterior.</p>
+  <div class="container">
+    <h1>Cadeados Sequenciais</h1>
+    <p class="lead">Insira as senhas em sequência (1 → 5). Cada cadeado só libera o próximo quando a senha estiver correta.</p><div class="locks" id="locks">
+  <!-- lock items injected by JS -->
+</div>
 
-    <div class="locks" id="locks"></div>
+<div class="final" id="final" hidden>
+  <strong>Todos os cadeados destrancados!</strong>
+  <div class="status unlocked">Acesso liberado ✅</div>
+  <small class="note">Você pode recarregar a página para reiniciar.</small>
+</div>
 
-    <div id="final" style="display:none" class="success">
-      <div style="font-size:20px">🔓</div>
-      <div>
-        <div style="font-weight:700">Todos os cadeados abertos!</div>
-        <div style="font-size:13px;color:var(--accent)">Parabéns — acesso completo concedido.</div>
-      </div>
-    </div>
-
-    <footer>Arquivo: <strong>index.html</strong> — copie e abra no navegador.</footer>
-  </div>
-
-  <script>
-    // Senhas definidas pelo usuário (ordem importa)
+  </div>  <script>
+    // Senhas fornecidas pelo usuário (exact match)
     const passwords = [
       '1953',
       'HongKong',
       'HTCS',
       'Taipei',
-      'Tigres Asiáticos'
+      'tigres asiaticos'
     ];
 
-    // Função para normalizar entrada: remove acentos e compara minúsculas
-    function normalizeText(s){
-      if(!s) return '';
-      // remover acentos
-      const withoutDiacritics = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
-      return withoutDiacritics.toLowerCase().trim();
-    }
+    // Estado de destrancamento
+    const unlocked = Array(passwords.length).fill(false);
 
-    const container = document.getElementById('locks');
+    const locksContainer = document.getElementById('locks');
+    const finalBox = document.getElementById('final');
 
-    // Estado dos cadeados
-    const state = passwords.map((p, i) => ({ index:i, locked:true }));
+    function createLock(index){
+      const wrap = document.createElement('div');
+      wrap.className = 'lock';
 
-    // Pré-calcula versões normalizadas das senhas para comparação tolerante (case + diacríticos)
-    const normalizedPasswords = passwords.map(p => normalizeText(p));
+      const icon = document.createElement('div');
+      icon.className = 'icon';
+      icon.textContent = index + 1;
 
-    // Cria os blocos de UI
-    passwords.forEach((pw, i) => {
-      const card = document.createElement('div');
-      card.className = 'lock';
-      card.id = 'lock-'+i;
+      const info = document.createElement('div');
+      info.className = 'info';
 
-      const pad = document.createElement('div');
-      pad.className = 'pad';
-      pad.textContent = '🔒';
-
-      const status = document.createElement('div');
-      status.className = 'status';
-      status.textContent = 'Trancado';
-
-      const hint = document.createElement('div');
-      hint.className = 'hint';
-      hint.textContent = `Cadeado ${i+1}`;
+      const title = document.createElement('h3');
+      title.textContent = `Cadeado ${index + 1}`;
 
       const controls = document.createElement('div');
       controls.className = 'controls';
@@ -94,82 +77,78 @@
       const input = document.createElement('input');
       input.type = 'text';
       input.placeholder = 'Digite a senha';
+      input.disabled = index !== 0; // só o primeiro começa ativo
       input.autocomplete = 'off';
-      input.id = 'input-'+i;
 
       const btn = document.createElement('button');
-      btn.textContent = 'Abrir';
-      btn.id = 'btn-'+i;
+      btn.textContent = 'Destrancar';
+      btn.disabled = input.disabled;
+
+      // status
+      const status = document.createElement('div');
+      status.className = 'status locked';
+      status.textContent = 'Bloqueado';
 
       controls.appendChild(input);
       controls.appendChild(btn);
 
-      card.appendChild(pad);
-      card.appendChild(status);
-      card.appendChild(hint);
-      card.appendChild(controls);
+      info.appendChild(title);
+      info.appendChild(controls);
+      info.appendChild(status);
 
-      container.appendChild(card);
+      wrap.appendChild(icon);
+      wrap.appendChild(info);
 
-      // Desativa todos menos o primeiro
-      if(i !== 0){
-        input.disabled = true;
-        btn.disabled = true;
-        card.style.opacity = 0.78;
-      }
-
-      // tratar ENTER
-      input.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') btn.click();
-      });
-
-      btn.addEventListener('click', () => {
-        const val = input.value || '';
-        // compara versão normalizada
-        if(normalizeText(val) === normalizedPasswords[i]){
-          // sucesso
-          state[i].locked = false;
-          pad.textContent = '🔓';
-          status.textContent = 'Destrancado';
-          card.classList.add('unlocked');
+      // Eventos
+      function tryUnlock(){
+        const val = input.value.trim();
+        if(val === passwords[index]){
+          unlocked[index] = true;
+          status.textContent = 'Destravado';
+          status.classList.remove('locked');
+          status.classList.add('unlocked');
           input.disabled = true;
           btn.disabled = true;
-
-          // habilitar próximo cadeado (se existir)
-          const nextIndex = i+1;
-          if(nextIndex < passwords.length){
-            const nextInput = document.getElementById('input-'+nextIndex);
-            const nextBtn = document.getElementById('btn-'+nextIndex);
-            const nextCard = document.getElementById('lock-'+nextIndex);
-            nextInput.disabled = false;
-            nextBtn.disabled = false;
-            nextInput.focus();
-            nextCard.style.opacity = 1;
+          // habilita próximo, se houver
+          if(index + 1 < passwords.length){
+            const nextControls = locksContainer.querySelectorAll('.lock')[index + 1];
+            // enable next input/button
+            const next = locksContainer.children[index + 1];
+            if(next){
+              const nextInput = next.querySelector('input');
+              const nextBtn = next.querySelector('button');
+              nextInput.disabled = false;
+              nextBtn.disabled = false;
+              nextInput.focus();
+            }
           } else {
-            // todos abertos
-            document.getElementById('final').style.display = 'flex';
+            // todos destrancados
+            finalBox.hidden = false;
           }
         } else {
-          // fracasso
-          // efeito sutil
-          btn.animate([
-            { transform: 'translateX(0)' },
-            { transform: 'translateX(-8px)' },
-            { transform: 'translateX(8px)' },
-            { transform: 'translateX(0)' }
-          ], { duration: 260 });
-          // dica rápida
           status.textContent = 'Senha incorreta';
-          setTimeout(()=>{
-            if(state[i].locked) status.textContent = 'Trancado';
-          },1200);
+          status.classList.remove('unlocked');
+          status.classList.add('locked');
         }
-      });
+      }
+
+      btn.addEventListener('click', tryUnlock);
+      input.addEventListener('keydown', function(e){ if(e.key === 'Enter') tryUnlock(); });
+
+      return wrap;
+    }
+
+    // Monta a interface
+    for(let i=0;i<passwords.length;i++){
+      const node = createLock(i);
+      locksContainer.appendChild(node);
+    }
+
+    // Accessibility: focus first input on load
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const first = locksContainer.querySelector('input');
+      if(first) first.focus();
     });
 
-    // acessibilidade: foco no primeiro input ao carregar
-    document.getElementById('input-0').focus();
-
-  </script>
-</body>
+  </script></body>
 </html>
