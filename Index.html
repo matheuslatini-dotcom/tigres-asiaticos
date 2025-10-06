@@ -1,154 +1,283 @@
 <!doctype html>
-
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cadeados Sequenciais</title>
   <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f172a,#0f3d5e);color:#e6eef8;margin:0;padding:20px}
-    .container{width:100%;max-width:720px;background:rgba(255,255,255,0.03);padding:28px;border-radius:14px;box-shadow:0 8px 24px rgba(2,6,23,0.6)}
-    h1{margin:0 0 18px;font-size:22px;text-align:center}
-    p.lead{margin:0 0 18px;text-align:center;opacity:0.9}
-    .locks{display:grid;grid-template-columns:repeat(1,1fr);gap:12px}
-    @media(min-width:640px){.locks{grid-template-columns:repeat(2,1fr)}}
-    .lock{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:12px}
-    .icon{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);font-weight:700}
-    .info{flex:1}
-    .info h3{margin:0;font-size:14px}
-    .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
-    input[type="text"]{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.25);color:inherit;flex:1}
-    button{padding:8px 12px;border-radius:8px;border:0;background:rgba(255,255,255,0.06);color:inherit;cursor:pointer}
-    button:disabled{opacity:0.45;cursor:not-allowed}
-    .status{font-size:13px;margin-top:6px;opacity:0.9}
-    .unlocked{color:#22c55e}
-    .locked{color:#f97316}
-    .final{margin-top:16px;padding:12px;border-radius:10px;background:linear-gradient(90deg,#052d36,#0a2f4a);text-align:center}
-    small.note{display:block;margin-top:8px;opacity:0.8}
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#06b6d4;
+      --ok:#10b981;
+      --bad:#ef4444;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(180deg, #071029 0%, #071a2b 100%);
+      color:#e6eef6;
+      padding:28px;
+    }
+    .wrap{
+      width:980px;
+      max-width:95%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;
+      padding:28px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    h1{margin:0 0 8px 0; font-size:1.4rem;}
+    p.lead{margin:0 0 18px 0; color: #bcd7e6;}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+    }
+    @media (max-width:800px){ .grid{grid-template-columns:1fr;} }
+    .card{
+      background:var(--card);
+      padding:16px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.03);
+      min-height:120px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+    }
+    .card .top{display:flex; align-items:center; gap:12px;}
+    .lock{
+      width:54px; height:54px;
+      display:inline-grid; place-items:center;
+      border-radius:8px;
+      background:var(--glass);
+      font-weight:700;
+      font-size:1.1rem;
+      color:var(--accent);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .title{font-weight:600;}
+    .status{font-size:0.9rem; color:#9fb7c6;}
+    input[type="text"]{
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.02);
+      color:inherit;
+      outline:none;
+      width:100%;
+      box-sizing:border-box;
+    }
+    .row{display:flex; gap:8px; align-items:center;}
+    button{
+      padding:10px 12px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      font-weight:600;
+      background:var(--accent);
+      color:#022;
+    }
+    button[disabled]{opacity:0.45; cursor:not-allowed;}
+    .msg{height:22px; font-size:0.9rem; margin-top:8px;}
+    .msg.ok{color:var(--ok);}
+    .msg.bad{color:var(--bad);}
+    .final{
+      grid-column: 1 / -1;
+      text-align:center;
+      padding:18px;
+      border-radius:8px;
+      background: linear-gradient(90deg, rgba(6,182,212,0.06), rgba(16,185,129,0.04));
+      border:1px solid rgba(255,255,255,0.03);
+      display:none;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap" role="main">
     <h1>Cadeados Sequenciais</h1>
-    <p class="lead">Insira as senhas em sequência (1 → 5). Cada cadeado só libera o próximo quando a senha estiver correta.</p><div class="locks" id="locks">
-  <!-- lock items injected by JS -->
-</div>
+    <p class="lead">Destrave cada cadeado na ordem correta. Se errar, tente novamente — só o cadeado atual aceita senha.</p>
 
-<div class="final" id="final" hidden>
-  <strong>Todos os cadeados destrancados!</strong>
-  <div class="status unlocked">Acesso liberado ✅</div>
-  <small class="note">Você pode recarregar a página para reiniciar.</small>
-</div>
+    <div class="grid" id="grid">
+      <!-- Cards serão injetados por JavaScript -->
+    </div>
 
-  </div>  <script>
-    // Senhas fornecidas pelo usuário (exact match)
-    const passwords = [
-      '1953',
-      'HongKong',
-      'HTCS',
-      'Taipei',
-      'tigres asiaticos'
+    <div class="final" id="finalBox" aria-live="polite">
+      <h2>🎉 Parabéns — você destrancou todos os cadeados!</h2>
+      <p>Você completou a sequência com sucesso.</p>
+    </div>
+  </div>
+
+  <script>
+    // Senhas conforme solicitado (ordem importante)
+    const rawPasswords = [
+      "1953",
+      "HongKong",
+      "HTCS",
+      "Taipei",
+      "Tigres Asiáticos"
     ];
 
-    // Estado de destrancamento
-    const unlocked = Array(passwords.length).fill(false);
+    // Normaliza para comparação: trim, case-insensitive, remove diacríticos
+    function norm(s){
+      return String(s ?? "")
+        .trim()
+        .normalize('NFD')            // separa diacríticos
+        .replace(/\\p{Diacritic}/gu,'') // remove diacríticos (requires modern browsers)
+        .toLowerCase();
+    }
 
-    const locksContainer = document.getElementById('locks');
-    const finalBox = document.getElementById('final');
+    const passwords = rawPasswords.map(p => norm(p));
+    // Rastreia qual cadeado atual (0..4)
+    let current = 0;
 
-    function createLock(index){
-      const wrap = document.createElement('div');
-      wrap.className = 'lock';
+    const grid = document.getElementById('grid');
+    const finalBox = document.getElementById('finalBox');
 
-      const icon = document.createElement('div');
-      icon.className = 'icon';
-      icon.textContent = index + 1;
+    function createCard(idx){
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = idx;
 
-      const info = document.createElement('div');
-      info.className = 'info';
-
-      const title = document.createElement('h3');
-      title.textContent = `Cadeado ${index + 1}`;
-
-      const controls = document.createElement('div');
-      controls.className = 'controls';
+      const top = document.createElement('div');
+      top.className = 'top';
+      top.innerHTML = `
+        <div class="lock" aria-hidden="true">${idx+1}</div>
+        <div>
+          <div class="title">Cadeado ${idx+1}</div>
+          <div class="status" id="status-${idx}">${ idx === 0 ? 'pronto para tentativa' : 'bloqueado' }</div>
+        </div>
+      `;
 
       const input = document.createElement('input');
       input.type = 'text';
-      input.placeholder = 'Digite a senha';
-      input.disabled = index !== 0; // só o primeiro começa ativo
+      input.placeholder = 'Digite a senha...';
+      input.id = `input-${idx}`;
       input.autocomplete = 'off';
+      input.disabled = idx !== 0; // só primeiro liberado inicialmente
+      input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') tryUnlock(idx);
+      });
 
       const btn = document.createElement('button');
-      btn.textContent = 'Destrancar';
-      btn.disabled = input.disabled;
+      btn.type = 'button';
+      btn.textContent = 'Verificar';
+      btn.id = `btn-${idx}`;
+      btn.disabled = idx !== 0;
+      btn.addEventListener('click', () => tryUnlock(idx));
 
-      // status
-      const status = document.createElement('div');
-      status.className = 'status locked';
-      status.textContent = 'Bloqueado';
+      const msg = document.createElement('div');
+      msg.className = 'msg';
+      msg.id = `msg-${idx}`;
 
-      controls.appendChild(input);
-      controls.appendChild(btn);
+      const bottom = document.createElement('div');
+      bottom.className = 'bottom';
+      bottom.appendChild(input);
 
-      info.appendChild(title);
-      info.appendChild(controls);
-      info.appendChild(status);
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.style.marginTop = '10px';
+      row.appendChild(btn);
+      row.appendChild(msg);
 
-      wrap.appendChild(icon);
-      wrap.appendChild(info);
+      card.appendChild(top);
+      card.appendChild(bottom);
+      card.appendChild(row);
 
-      // Eventos
-      function tryUnlock(){
-        const val = input.value.trim();
-        if(val === passwords[index]){
-          unlocked[index] = true;
-          status.textContent = 'Destravado';
-          status.classList.remove('locked');
-          status.classList.add('unlocked');
-          input.disabled = true;
-          btn.disabled = true;
-          // habilita próximo, se houver
-          if(index + 1 < passwords.length){
-            const nextControls = locksContainer.querySelectorAll('.lock')[index + 1];
-            // enable next input/button
-            const next = locksContainer.children[index + 1];
-            if(next){
-              const nextInput = next.querySelector('input');
-              const nextBtn = next.querySelector('button');
-              nextInput.disabled = false;
-              nextBtn.disabled = false;
-              nextInput.focus();
-            }
-          } else {
-            // todos destrancados
-            finalBox.hidden = false;
-          }
-        } else {
-          status.textContent = 'Senha incorreta';
-          status.classList.remove('unlocked');
-          status.classList.add('locked');
-        }
-      }
-
-      btn.addEventListener('click', tryUnlock);
-      input.addEventListener('keydown', function(e){ if(e.key === 'Enter') tryUnlock(); });
-
-      return wrap;
+      return card;
     }
 
-    // Monta a interface
-    for(let i=0;i<passwords.length;i++){
-      const node = createLock(i);
-      locksContainer.appendChild(node);
-    }
-
-    // Accessibility: focus first input on load
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const first = locksContainer.querySelector('input');
-      if(first) first.focus();
+    // Renderiza todos os cards
+    rawPasswords.forEach((_, i) => {
+      grid.appendChild(createCard(i));
     });
 
-  </script></body>
+    function setStatus(idx, text){
+      const s = document.getElementById(`status-${idx}`);
+      if(s) s.textContent = text;
+    }
+
+    function setMsg(idx, text, type){
+      const m = document.getElementById(`msg-${idx}`);
+      if(!m) return;
+      m.textContent = text;
+      m.classList.remove('ok','bad');
+      if(type === 'ok') m.classList.add('ok');
+      if(type === 'bad') m.classList.add('bad');
+    }
+
+    function enableIndex(idx){
+      const input = document.getElementById(`input-${idx}`);
+      const btn = document.getElementById(`btn-${idx}`);
+      if(input) input.disabled = false;
+      if(btn) btn.disabled = false;
+      setStatus(idx, 'pronto para tentativa');
+      if(input) input.focus();
+    }
+    function disableIndex(idx){
+      const input = document.getElementById(`input-${idx}`);
+      const btn = document.getElementById(`btn-${idx}`);
+      if(input) { input.disabled = true; input.value = ''; }
+      if(btn) btn.disabled = true;
+      setStatus(idx, 'bloqueado');
+    }
+
+    function tryUnlock(idx){
+      if(idx !== current) return; // somente o atual
+      const input = document.getElementById(`input-${idx}`);
+      if(!input) return;
+      const attempt = norm(input.value);
+      if(attempt === passwords[idx]){
+        setMsg(idx, 'Senha correta! ✅', 'ok');
+        setStatus(idx, 'destrancado');
+        // marca visual: substituir ícone
+        const lockBox = document.querySelector(`.card[data-index="${idx}"] .lock`);
+        if(lockBox) lockBox.textContent = '🔓';
+
+        // desabilitar atual completamente
+        disableIndex(idx);
+        current++;
+        if(current < passwords.length){
+          enableIndex(current);
+        } else {
+          // terminou
+          finalBox.style.display = 'block';
+          finalBox.scrollIntoView({behavior:'smooth'});
+        }
+      } else {
+        setMsg(idx, 'Senha incorreta. Tente novamente.', 'bad');
+        // mantém habilitado para nova tentativa
+      }
+    }
+
+    // acessibilidade: colocar cadeado visual fechado nos iniciais
+    document.querySelectorAll('.card .lock').forEach((el, i) => {
+      el.textContent = i === 0 ? el.textContent : '🔒';
+    });
+
+    // Se quiser reiniciar com o botão direito (opcional)
+    // adiciona um pequeno atalho: pressionar R reinicia (útil durante testes)
+    document.addEventListener('keydown', (e) => {
+      if(e.key.toLowerCase() === 'r' && (e.ctrlKey || e.metaKey)){
+        // reinicia
+        current = 0;
+        finalBox.style.display = 'none';
+        rawPasswords.forEach((_, i) => {
+          const lockBox = document.querySelector(`.card[data-index="${i}"] .lock`);
+          if(lockBox) lockBox.textContent = i === 0 ? (i+1) : '🔒';
+          setMsg(i, '', '');
+          if(i === 0) enableIndex(i); else disableIndex(i);
+        });
+      }
+    });
+
+  </script>
+</body>
 </html>
